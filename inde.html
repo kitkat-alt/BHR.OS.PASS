@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 flex items-center justify-center min-h-screen p-4 relative overflow-hidden">
+
+    <!-- Modern Background Glow -->
+    <div class="absolute top-0 left-0 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-[128px] opacity-40 animate-pulse"></div>
+    <div class="absolute bottom-0 right-0 w-72 h-72 bg-fuchsia-500 rounded-full mix-blend-multiply filter blur-[128px] opacity-40 animate-pulse" style="animation-delay: 2s;"></div>
+
+    <!-- Glassmorphism Login Card -->
+    <div class="relative z-10 w-full max-w-md p-8 sm:p-10 bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/20 shadow-2xl">
+        
+        <!-- Header -->
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-bold tracking-tight mb-2 text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-fuchsia-400">BHR.OS</h1>
+            <p class="text-slate-300 text-sm" id="subtitleText">อัพเดตฐานข้อมูลประจำ 3 เดือน</p>
+        </div>
+
+        <!-- Form -->
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            
+            <!-- Username Input -->
+            <div class="mb-5">
+                <label class="block text-slate-300 text-sm font-medium mb-2" for="username">Username</label>
+                <div class="relative">
+                    <i class="fas fa-user absolute left-4 top-3.5 text-slate-400"></i>
+                    <input class="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-800/50 border border-slate-600/50 text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all" 
+                           type="text" 
+                           id="username" 
+                           placeholder="Enter your username" 
+                           required>
+                </div>
+            </div>
+
+            <!-- Password Input -->
+            <div class="mb-8">
+                <label class="block text-slate-300 text-sm font-medium mb-2" for="password">Password</label>
+                <div class="relative">
+                    <i class="fas fa-lock absolute left-4 top-3.5 text-slate-400"></i>
+                    <input class="w-full pl-11 pr-12 py-3 rounded-xl bg-slate-800/50 border border-slate-600/50 text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all" 
+                           type="password" 
+                           id="password" 
+                           placeholder="••••••••" 
+                           required>
+                    <button type="button" id="togglePassword" class="absolute right-4 top-3.5 text-slate-400 hover:text-white transition-colors focus:outline-none">
+                        <i class="fas fa-eye" id="eyeIcon"></i>
+                    </button>
+                </div>
+                <div class="flex justify-end mt-3">
+                    <a href="#" class="text-sm text-indigo-400 hover:text-indigo-300 font-medium transition-colors">Forgot password?</a>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button class="w-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 hover:from-indigo-600 hover:to-fuchsia-600 text-white font-semibold py-3.5 px-4 rounded-xl shadow-lg shadow-indigo-500/25 transition-all duration-300 transform hover:-translate-y-0.5" 
+                    type="submit" 
+                    id="submitBtn">
+                Sign In
+            </button>
+        </form>
+
+        <!-- Loading State (ซ่อนไว้ตอนแรก) -->
+        <div id="loadingState" class="hidden text-center py-4">
+            <!-- หลอดโหลด -->
+            <div id="progressContainer" class="w-full bg-slate-800/50 rounded-full h-4 mb-4 overflow-hidden border border-slate-600/50">
+                <div id="progressBar" class="bg-gradient-to-r from-indigo-500 to-fuchsia-500 h-4 rounded-full w-0 transition-all duration-300 ease-out"></div>
+            </div>
+            <div id="progressText" class="text-indigo-400 font-medium mb-6">0%</div>
+
+            <!-- ข้อความสำเร็จ (ซ่อนไว้ตอนแรก) -->
+            <div id="successIcon" class="hidden animate-bounce mt-2">
+                <i class="fas fa-check-circle text-6xl text-emerald-400 mb-4 shadow-emerald-500/50 drop-shadow-lg"></i>
+                <p class="text-emerald-400 font-bold text-2xl">อัพเดตระบบเรียบร้อย</p>
+            </div>
+        </div>
+
+        <!-- Alert Message -->
+        <div id="messageBox" class="mt-6 hidden text-center text-sm font-medium rounded-xl p-3 backdrop-blur-sm transition-all border"></div>
+
+    </div>
+
+    <script>
+        // Password Visibility Toggle
+        const togglePassword = document.querySelector('#togglePassword');
+        const passwordInput = document.querySelector('#password');
+        const eyeIcon = document.querySelector('#eyeIcon');
+
+        togglePassword.addEventListener('click', function () {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            
+            if (type === 'password') {
+                eyeIcon.classList.remove('fa-eye-slash');
+                eyeIcon.classList.add('fa-eye');
+            } else {
+                eyeIcon.classList.remove('fa-eye');
+                eyeIcon.classList.add('fa-eye-slash');
+            }
+        });
+
+        // Simulate Login
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            const messageBox = document.getElementById('messageBox');
+            const submitBtn = document.getElementById('submitBtn');
+            const form = document.getElementById('loginForm');
+            const subtitleText = document.getElementById('subtitleText');
+            
+            // Elements for Loading
+            const loadingState = document.getElementById('loadingState');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            const successIcon = document.getElementById('successIcon');
+            const progressContainer = document.getElementById('progressContainer');
+
+            // กำหนดรายชื่อ User และ Password
+            const validUsers = {
+                '0660146646': '1997',
+                '0923741158': '0404',
+                '0805424387': '1625',
+                '0917056709': '2546',
+                '0654409960': '2458',
+                '0924281237': '8881',
+                '0640939832': '3637'
+            };
+
+            // ตรวจสอบรหัสผ่าน
+            if (validUsers[user] && validUsers[user] === pass) {
+                // เข้าสู่ระบบสำเร็จ -> ซ่อนฟอร์ม แสดงหน้าโหลด
+                form.classList.add('hidden');
+                messageBox.classList.add('hidden');
+                subtitleText.innerText = "กำลังอัพเดตระบบ...";
+                loadingState.classList.remove('hidden');
+
+                // จำลองการโหลด %
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += Math.floor(Math.random() * 20) + 10; // เพิ่มทีละ 10-30%
+                    
+                    if (progress >= 100) {
+                        progress = 100;
+                        clearInterval(interval);
+                        
+                        // เมื่อโหลดเต็ม 100%
+                        setTimeout(() => {
+                            progressContainer.classList.add('hidden');
+                            progressText.classList.add('hidden');
+                            subtitleText.classList.add('hidden');
+                            successIcon.classList.remove('hidden');
+                        }, 500);
+                    }
+                    
+                    progressBar.style.width = progress + '%';
+                    progressText.innerText = progress + '%';
+                }, 400); // อัพเดตทุกๆ 0.4 วินาที
+
+            } else {
+                // รหัสผิดพลาด -> แจ้งเตือน
+                submitBtn.innerHTML = 'Sign In';
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-80', 'cursor-not-allowed');
+
+                messageBox.classList.remove('hidden', 'bg-emerald-500/20', 'border-emerald-500/50', 'text-emerald-200');
+                messageBox.classList.add('bg-red-500/20', 'border-red-500/50', 'text-red-200');
+                messageBox.innerHTML = `<i class="fas fa-exclamation-circle mr-1"></i> Username หรือ Password ไม่ถูกต้อง`;
+                
+                // สั่นการ์ดเบาๆ เมื่อรหัสผิด
+                const card = document.querySelector('.backdrop-blur-xl');
+                card.classList.add('animate-pulse');
+                setTimeout(() => card.classList.remove('animate-pulse'), 500);
+            }
+        }
+    </script>
+</body>
+</html>
